@@ -21,6 +21,7 @@ from IPython.display import display
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import numpy as np
+import plotly.express as px
 
 
 ### Idea: disorders by country over time
@@ -578,7 +579,7 @@ fig.show()
 
 
 ### Line chart:
-focus   = ['Morocco', 'Lesotho', 'Uganda', 'Poland', 'Myanmar', 'Albania']
+# (defined focus)
 df_line = df_enriched[df_enriched['Entity'].isin(focus)].copy()
 
 # Color map
@@ -635,3 +636,86 @@ fig.update_layout(
 
 fig.write_html('linechart_depression_trends.html')
 fig.show()
+# Results:
+# - The two groups have stayed roughly 3 percentage points apart from 1990 to 2017 
+# with no sign of convergence. This is a structural finding — these aren't 
+# temporary fluctuations, these are entrenched patterns.
+# - Morocco peaked around 1999–2000 (~5.7%) then slowly declined to ~5.4% by 2017 — slight improvement over time
+# - Uganda rose from 5.0% to ~5.5% peaking around 2003, then dropped back to ~4.9% by 2017 — the most movement of any country
+# - Lesotho is the most alarming — it has been steadily RISING since 2003 and by 2017 is overtaking both Morocco and Uganda. It's the only country in either group that is clearly getting worse
+# - Poland, Myanmar and Albania barely moved across 27 years — their low depression is locked in just as firmly as the top 3's high depression.
+# Takeaway (short): The gap is persistent, not closing — and Lesotho's rising trend is the single most concerning finding in this chart and worth highlighting.
+
+
+
+# Grouped bar chart chart:
+df_radar = df_enriched[df_enriched['Entity'].isin(focus)].copy()
+
+# --- Build normalized summary ---
+metrics = ['Depression', 'Anxiety', 'Drug Use', 'Alcohol Use', 'HDI_Value']
+
+radar_df = (df_radar.groupby('Entity')[metrics]
+            .mean()
+            .round(3)
+            .reset_index())
+
+# Normalize each metric 0-1 so all axes are comparable
+for col in metrics:
+    min_val = radar_df[col].min()
+    max_val = radar_df[col].max()
+    radar_df[col + '_norm'] = (radar_df[col] - min_val) / (max_val - min_val)
+
+metrics      = ['Depression', 'Anxiety', 'Drug Use', 'Alcohol Use', 'HDI_Value']
+metric_labels = ['Depression', 'Anxiety', 'Drug Use', 'Alcohol Use', 'HDI']
+
+colors = {
+    'Morocco': 'crimson',
+    'Lesotho': 'tomato',
+    'Uganda':  'orangered',
+    'Poland':  'seagreen',
+    'Myanmar': 'mediumseagreen',
+    'Albania': 'steelblue'
+}
+
+fig = go.Figure()
+
+for _, row in radar_df.iterrows():
+    country = row['Entity']
+    fig.add_trace(go.Bar(
+        name=country,
+        x=metric_labels,
+        y=[row[m] for m in metrics],
+        marker_color=colors[country],
+        hovertemplate=f'<b>{country}</b><br>%{{x}}: %{{y:.3f}}<extra></extra>'
+    ))
+
+fig.update_layout(
+    barmode='group',
+    title=dict(
+        text='Mental Health & HDI Profile: Top 3 vs Bottom 3 Countries<br><sup>Average 1990–2017 | Actual values (not normalized)</sup>',
+        x=0.5
+    ),
+    xaxis=dict(title='Metric'),
+    yaxis=dict(title='Average Value'),
+    width=950, height=550,
+    legend=dict(x=1.01, y=1, xanchor='left'),
+    plot_bgcolor='white',
+    paper_bgcolor='white',
+    xaxis_gridcolor='#eeeeee',
+    yaxis_gridcolor='#eeeeee',
+)
+
+fig.write_html('grouped_bar_profiles.html')
+fig.show()
+# Results:
+# Depression — Clean separation The three red/orange bars tower above the blue/green bars. This is your headline finding, clearly visible at a glance. No ambiguity.
+# Anxiety — Morocco is the only outlier Morocco's anxiety bar (~5.0%) is dramatically taller than every other country including Lesotho and Uganda (~3.5%). Everyone else — top 3 AND bottom 3 — clusters between 3.2 and 3.5%. Anxiety does NOT separate the groups. It separates Morocco from everyone else.
+# Drug Use — Same story as anxiety Morocco again dominates at ~1.5%. Everyone else sits below 0.85% with no meaningful difference between top and bottom groups. Drug use is a Morocco-specific problem, not a top 3 pattern.
+# Alcohol Use — The counterintuitive finding Poland has the HIGHEST alcohol use (~1.95%) and the LOWEST depression. Morocco has the LOWEST alcohol use (~0.6%) and the HIGHEST depression. The relationship is literally inverted.
+# HDI — Mostly separates groups but Myanmar breaks it Poland and Albania clearly taller, Uganda and Lesotho clearly shorter — but Myanmar sits identically to Uganda and Lesotho in HDI while matching Poland and Albania in depression.
+
+
+
+
+
+### One-line summary: Depression and HDI separate the two groups cleanly — but anxiety, drug use and alcohol use reveal that Morocco has an entirely different profile from Lesotho and Uganda, suggesting the top 3 don't share a single common cause.
