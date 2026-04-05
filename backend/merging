@@ -1,0 +1,45 @@
+import pandas as pd
+
+# 1. Load the three cleaned files
+# Ensure the files are in the same folder as your script
+fp_mental = r'C:\Users\mailm\Downloads\Disorders_by_country\backend\Cleaned_Mental_Health.csv'
+fp_hdi = r'C:\Users\mailm\Downloads\Disorders_by_country\backend\clean_hdi.csv'
+fp_econ = r'C:\Users\mailm\Downloads\Disorders_by_country\backend\Cleaned_Unemployment_GDP.csv'
+df_mental = pd.read_csv(fp_mental, low_memory = False)
+df_hdi = pd.read_csv(fp_hdi, low_memory = False)
+df_econ = pd.read_csv(fp_econ, low_memory = False)
+
+# 2. Standardize data types for 'Year' to ensure a smooth merge
+df_mental['Year'] = df_mental['Year'].astype(int)
+df_hdi['Year'] = df_hdi['Year'].astype(int)
+df_econ['Year'] = df_econ['Year'].astype(int)
+
+# 3. Perform a Chained Merge
+# Step 1: Merge Mental Health and HDI on Entity/country and Year
+merged_temp = pd.merge(
+    df_mental, 
+    df_hdi, 
+    left_on=['Entity', 'Year'], 
+    right_on=['country', 'Year'], 
+    how='inner'
+)
+
+# Step 2: Merge the result with Economic data on Entity/Country Name and Year
+final_master_df = pd.merge(
+    merged_temp, 
+    df_econ, 
+    left_on=['Entity', 'Year'], 
+    right_on=['Country Name', 'Year'], 
+    how='inner'
+)
+
+# 4. Cleanup: Remove redundant country columns created by the merge
+# We keep only 'Entity' as the primary country column
+final_master_df = final_master_df.drop(columns=['country', 'Country Name'])
+
+# 5. Save the final consolidated dataset
+final_master_df.to_csv('Master_Merged_Dataset.csv', index=False)
+
+print("Merge Successful! 'Master_Merged_Dataset.csv' has been created.")
+print(f"Total columns: {len(final_master_df.columns)}")
+print(f"Final column list: {final_master_df.columns.tolist()}")

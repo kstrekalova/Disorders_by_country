@@ -1,0 +1,225 @@
+country,Year,hdi
+Albania,1990,0.647
+Albania,1991,0.629
+Albania,1992,0.614
+Albania,1993,0.617
+Albania,1994,0.624
+Albania,1995,0.634
+Albania,1996,0.645
+Albania,1997,0.642
+Albania,1998,0.657
+Albania,1999,0.669
+Albania,2000,0.677
+Albania,2001,0.684
+Albania,2002,0.689
+Albania,2003,0.696
+Albania,2004,0.7
+Albania,2005,0.711
+Albania,2006,0.718
+Albania,2007,0.73
+Albania,2008,0.736
+Albania,2009,0.741
+Albania,2010,0.754
+Albania,2011,0.766
+Albania,2012,0.778
+Albania,2013,0.785
+Albania,2014,0.792
+Albania,2015,0.795
+Albania,2016,0.798
+Albania,2017,0.802
+Albania,2018,0.806
+Albania,2019,0.81
+Albania,2020,0.794
+Albania,2021,0.796
+Lesotho,1990,0.479
+Lesotho,1991,0.478
+Lesotho,1992,0.476
+Lesotho,1993,0.472
+Lesotho,1994,0.475
+Lesotho,1995,0.472
+Lesotho,1996,0.467
+Lesotho,1997,0.462
+Lesotho,1998,0.46
+Lesotho,1999,0.452
+Lesotho,2000,0.452
+Lesotho,2001,0.448
+Lesotho,2002,0.446
+Lesotho,2003,0.449
+Lesotho,2004,0.448
+Lesotho,2005,0.448
+Lesotho,2006,0.446
+Lesotho,2007,0.452
+Lesotho,2008,0.457
+Lesotho,2009,0.457
+Lesotho,2010,0.467
+Lesotho,2011,0.475
+Lesotho,2012,0.486
+Lesotho,2013,0.49
+Lesotho,2014,0.496
+Lesotho,2015,0.503
+Lesotho,2016,0.514
+Lesotho,2017,0.518
+Lesotho,2018,0.522
+Lesotho,2019,0.524
+Lesotho,2020,0.521
+Lesotho,2021,0.514
+Morocco,1990,0.447
+Morocco,1991,0.453
+Morocco,1992,0.457
+Morocco,1993,0.463
+Morocco,1994,0.475
+Morocco,1995,0.478
+Morocco,1996,0.49
+Morocco,1997,0.494
+Morocco,1998,0.501
+Morocco,1999,0.511
+Morocco,2000,0.521
+Morocco,2001,0.532
+Morocco,2002,0.542
+Morocco,2003,0.552
+Morocco,2004,0.56
+Morocco,2005,0.567
+Morocco,2006,0.573
+Morocco,2007,0.581
+Morocco,2008,0.588
+Morocco,2009,0.594
+Morocco,2010,0.603
+Morocco,2011,0.614
+Morocco,2012,0.624
+Morocco,2013,0.635
+Morocco,2014,0.644
+Morocco,2015,0.654
+Morocco,2016,0.661
+Morocco,2017,0.67
+Morocco,2018,0.676
+Morocco,2019,0.682
+Morocco,2020,0.679
+Morocco,2021,0.683
+Myanmar,1990,0.333
+Myanmar,1991,0.343
+Myanmar,1992,0.356
+Myanmar,1993,0.363
+Myanmar,1994,0.369
+Myanmar,1995,0.374
+Myanmar,1996,0.381
+Myanmar,1997,0.385
+Myanmar,1998,0.392
+Myanmar,1999,0.401
+Myanmar,2000,0.41
+Myanmar,2001,0.42
+Myanmar,2002,0.43
+Myanmar,2003,0.44
+Myanmar,2004,0.45
+Myanmar,2005,0.46
+Myanmar,2006,0.47
+Myanmar,2007,0.48
+Myanmar,2008,0.465
+Myanmar,2009,0.501
+Myanmar,2010,0.51
+Myanmar,2011,0.521
+Myanmar,2012,0.531
+Myanmar,2013,0.543
+Myanmar,2014,0.553
+Myanmar,2015,0.562
+Myanmar,2016,0.572
+Myanmar,2017,0.58
+Myanmar,2018,0.59
+Myanmar,2019,0.598
+Myanmar,2020,0.6
+Myanmar,2021,0.585
+Poland,1990,0.716
+Poland,1991,0.713
+Poland,1992,0.718
+Poland,1993,0.731
+Poland,1994,0.741
+Poland,1995,0.746
+Poland,1996,0.755
+Poland,1997,0.766
+Poland,1998,0.776
+Poland,1999,0.783
+Poland,2000,0.793
+Poland,2001,0.799
+Poland,2002,0.806
+Poland,2003,0.811
+Poland,2004,0.809
+Poland,2005,0.815
+Poland,2006,0.82
+Poland,2007,0.825
+Poland,2008,0.831
+Poland,2009,0.835
+Poland,2010,0.841
+Poland,2011,0.847
+Poland,2012,0.852
+Poland,2013,0.863
+Poland,2014,0.865
+Poland,2015,0.868
+Poland,2016,0.872
+Poland,2017,0.875
+Poland,2018,0.877
+Poland,2019,0.881
+Poland,2020,0.876
+Poland,2021,0.876
+Uganda,1990,0.329
+Uganda,1991,0.331
+Uganda,1992,0.325
+Uganda,1993,0.332
+Uganda,1994,0.336
+Uganda,1995,0.342
+Uganda,1996,0.354
+Uganda,1997,0.364
+Uganda,1998,0.373
+Uganda,1999,0.385
+Uganda,2000,0.394
+Uganda,2001,0.404
+Uganda,2002,0.417
+Uganda,2003,0.429
+Uganda,2004,0.444
+Uganda,2005,0.454
+Uganda,2006,0.466
+Uganda,2007,0.476
+Uganda,2008,0.484
+Uganda,2009,0.494
+Uganda,2010,0.502
+Uganda,2011,0.506
+Uganda,2012,0.504
+Uganda,2013,0.509
+Uganda,2014,0.512
+Uganda,2015,0.517
+Uganda,2016,0.519
+Uganda,2017,0.52
+Uganda,2018,0.522
+Uganda,2019,0.525
+Uganda,2020,0.524
+Uganda,2021,0.525
+United States,1990,0.872
+United States,1991,0.873
+United States,1992,0.878
+United States,1993,0.88
+United States,1994,0.884
+United States,1995,0.885
+United States,1996,0.887
+United States,1997,0.89
+United States,1998,0.893
+United States,1999,0.889
+United States,2000,0.891
+United States,2001,0.892
+United States,2002,0.893
+United States,2003,0.895
+United States,2004,0.898
+United States,2005,0.9
+United States,2006,0.904
+United States,2007,0.906
+United States,2008,0.906
+United States,2009,0.908
+United States,2010,0.911
+United States,2011,0.913
+United States,2012,0.916
+United States,2013,0.917
+United States,2014,0.919
+United States,2015,0.92
+United States,2016,0.922
+United States,2017,0.924
+United States,2018,0.927
+United States,2019,0.93
+United States,2020,0.92
+United States,2021,0.921

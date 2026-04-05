@@ -1,0 +1,35 @@
+import pandas as pd
+
+# 1. LOAD DATA
+# Using 'r' to prevent Unicode errors for your Windows path
+file_path = r'C:\Users\mailm\Downloads\Disorders_by_country\backend\cleaning_data\Mental health Depression disorder Data.csv'
+df_mental = pd.read_csv(file_path, low_memory=False)
+
+# 2. DEFINE DISORDER COLUMNS
+disorder_cols = [
+    'Schizophrenia (%)', 'Bipolar disorder (%)', 'Eating disorders (%)', 
+    'Anxiety disorders (%)', 'Drug use disorders (%)', 'Depression (%)', 
+    'Alcohol use disorders (%)'
+]
+
+# 3. CLEANING
+# Ensure Year and the percentages are numeric (handles the DtypeWarning)
+df_mental['Year'] = pd.to_numeric(df_mental['Year'], errors='coerce')
+for col in disorder_cols:
+    df_mental[col] = pd.to_numeric(df_mental[col], errors='coerce')
+
+# 4. ADD COUNTRY FILTER
+# In this specific file, the country column is named 'Entity'
+countries_to_keep = ["Morocco", "Lesotho", "Uganda", "Albania", "Myanmar", "Poland", "United States"]
+df_filtered = df_mental[df_mental['Entity'].isin(countries_to_keep)].copy()
+
+# 5. FINAL CLEANUP
+# Drop rows where critical data (like Depression) is missing
+df_filtered = df_filtered.dropna(subset=['Depression (%)'])
+
+# 6. SAVE
+df_filtered.to_csv("Cleaned_Mental_Health.csv", index=False)
+
+print("Mental health data filtered and saved as 'Cleaned_Mental_Health.csv'!")
+print(f"Countries remaining: {df_filtered['Entity'].unique()}")
+print(df_filtered.head())
