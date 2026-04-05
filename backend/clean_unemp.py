@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load your CSV
-file_path = r'C:/Users/janicewang/Desktop/depression_data/Disorders_by_country/backend/Employment_Unemployment_GDP_data.csv'
+file_path = r'C:\Users\mailm\Downloads\Disorders_by_country\backend\Employment_Unemployment_GDP_data.csv'
 df = pd.read_csv(file_path, low_memory=False)
 
 # Keep only desired columns
