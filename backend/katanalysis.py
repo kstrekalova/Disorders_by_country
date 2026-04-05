@@ -17,11 +17,12 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import country_converter as coco
+from IPython.display import display
 
 
 ### Idea: disorders by country over time
 
-raw = pd.read_csv('Mental_health_data.csv', dtype=str)  # read everything as string first
+raw = pd.read_csv('Mental health Depression disorder Data.csv', dtype=str)  # read everything as string first
 
 # Find the row index where the second header appears
 # It'll have "Entity" in the Entity column again (a dead giveaway)
@@ -30,7 +31,6 @@ second_header_idx = raw[second_header_mask].index[0]
 
 print(f"Second header found at row: {second_header_idx}")  # sanity check
 
-# df = pd.read_csv("Mental_health_data.csv")
 
 # ---- DATASET 1: Disorder prevalence ----
 df_disorders = raw.iloc[:second_header_idx].copy()
@@ -102,33 +102,66 @@ df_long = df_disorders.melt(
     value_name='Prevalence'
 )
 
-print(df_long.shape)
-print(df_long.head())
+# print(df_long.shape)
+# print(df_long.head())
 
 
 
 #================================================================
 ## Explanatory analysis
 # 1. Global average prevalence per disorder (which is most common?)
-df_long.groupby('Disorder')['Prevalence'].mean().sort_values(ascending=False)
+# df_long.groupby('Disorder')['Prevalence'].mean().sort_values(ascending=False)
 
 # 2. Which countries have the highest average depression rate?
-(df_disorders.groupby('Entity')['Depression']
- .mean()
- .sort_values(ascending=False)
- .head(10))
+# (df_disorders.groupby('Entity')['Depression']
+#  .mean()
+#  .sort_values(ascending=False)
+#  .head(10))
 
-# 3. How has each disorder trended globally over time?
-(df_long.groupby(['Year', 'Disorder'])['Prevalence']
- .mean()
- .reset_index()
- .sort_values('Year'))
+# # 3. How has each disorder trended globally over time?
+# (df_long.groupby(['Year', 'Disorder'])['Prevalence']
+#  .mean()
+#  .reset_index()
+#  .sort_values('Year'))
 
-# 4. Correlation between disorders — do they co-occur?
-df_disorders[disorder_cols].corr().round(2)
+# # 4. Correlation between disorders — do they co-occur?
+# df_disorders[disorder_cols].corr().round(2)
 
 
+# 1. Global average prevalence per disorder
+print("\n--- 1. Average Prevalence by Disorder ---")
+display(
+    df_long.groupby('Disorder')['Prevalence']
+    .mean()
+    .sort_values(ascending=False)
+    .round(4)
+    .reset_index()
+)
 
+# 2. Top 10 countries by average depression rate
+print("\n--- 2. Top 10 Countries by Depression ---")
+display(
+    df_disorders.groupby('Entity')['Depression']
+    .mean()
+    .sort_values(ascending=False)
+    .head(10)
+    .round(4)
+    .reset_index()
+)
+
+# 3. Global disorder trends over time
+print("\n--- 3. Global Trends Over Time ---")
+display(
+    df_long.groupby(['Year', 'Disorder'])['Prevalence']
+    .mean()
+    .round(4)
+    .reset_index()
+    .sort_values(['Disorder', 'Year'])
+)
+
+# 4. Correlation between disorders
+print("\n--- 4. Disorder Correlation Matrix ---")
+display(df_disorders[disorder_cols].corr().round(2))
 
 
 
