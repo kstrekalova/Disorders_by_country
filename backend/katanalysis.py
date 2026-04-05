@@ -14,14 +14,11 @@
 
 
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 import country_converter as coco
 from IPython.display import display
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import numpy as np
-import plotly.express as px
 
 
 ### Idea: disorders by country over time
@@ -205,39 +202,6 @@ display(df_disorders[disorder_cols].corr().round(2))
 # Depression is nearly uncorrelated with most disorders — this is counterintuitive but suggests Depression has a very different geographic/cultural distribution than the others
 # Alcohol Use is negatively correlated with Anxiety (-0.16) and Drug Use (-0.16) — countries high in one tend to be lower in the other, suggesting cultural substitution (e.g. alcohol-heavy cultures vs drug-use-heavy ones)
 # Eating disorders cluster with Schizophrenia and Bipolar — likely a shared geographic pattern (higher prevalence in wealthier/Western countries)
-
-
-#===================================================
-# ##### VISUALIZATIONS
-# # 1. Heatmap (countries × years): Prevalence pattern for one disorder
-# corr_matrix = df_disorders[disorder_cols].corr().round(2)
-
-# # Create a mask for the upper triangle (avoids duplicate info)
-# mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
-
-# fig, ax = plt.subplots(figsize=(9, 7))
-
-# sns.heatmap(
-#     corr_matrix,
-#     mask=mask,
-#     annot=True,          # Show the numbers
-#     fmt='.2f',           # 2 decimal places
-#     cmap='RdYlGn',       # Red (negative) → Yellow (neutral) → Green (positive)
-#     vmin=-1, vmax=1,     # Fix scale to full correlation range
-#     linewidths=0.5,
-#     square=True,
-#     ax=ax
-# )
-
-# ax.set_title('Correlation Between Mental Health Disorders\n(Global Prevalence, 1990–2017)',
-#              fontsize=14, pad=15)
-# ax.tick_params(axis='x', rotation=45)
-# ax.tick_params(axis='y', rotation=0)
-
-# plt.tight_layout()
-# plt.savefig('disorder_correlation_heatmap.png', dpi=150, bbox_inches='tight')
-# plt.show()
-
 
 
 #===================================================
