@@ -463,3 +463,175 @@ display(summary[['Group', 'Entity', 'Avg_Depression', 'Avg_HDI',
 # - Low anxiety, low drug use, low alcohol
 # - Essentially low everything
 # might be seriously underreported
+
+
+#=====================================================================
+### Visualizations:
+# Scatter plot
+# --- Prep: average across all years per country ---
+scatter_df = (df_enriched.groupby('Entity')
+              .agg(
+                  Avg_Depression = ('Depression', 'mean'),
+                  Avg_HDI        = ('HDI_Value',  'mean'),
+              )
+              .round(3)
+              .dropna()
+              .reset_index())
+
+# --- Define focus groups ---
+top3    = ['Morocco', 'Lesotho', 'Uganda']
+bottom3 = ['Poland', 'Myanmar', 'Albania']
+focus   = top3 + bottom3
+
+bg      = scatter_df[~scatter_df['Entity'].isin(focus)]
+foc_top = scatter_df[scatter_df['Entity'].isin(top3)]
+foc_bot = scatter_df[scatter_df['Entity'].isin(bottom3)]
+
+fig = go.Figure()
+
+# --- Layer 1: background countries (grey, subtle) ---
+fig.add_trace(go.Scatter(
+    x=bg['Avg_HDI'],
+    y=bg['Avg_Depression'],
+    mode='markers',
+    name='All Other Countries',
+    text=bg['Entity'],
+    hovertemplate='<b>%{text}</b><br>HDI: %{x}<br>Depression: %{y}%<extra></extra>',
+    marker=dict(color='lightgrey', size=7, opacity=0.6,
+                line=dict(color='grey', width=0.5))
+))
+
+# --- Layer 2: Top 3 (red) ---
+fig.add_trace(go.Scatter(
+    x=foc_top['Avg_HDI'],
+    y=foc_top['Avg_Depression'],
+    mode='markers+text',
+    name='Top 3 (Highest Depression)',
+    text=foc_top['Entity'],
+    textposition='top right',
+    hovertemplate='<b>%{text}</b><br>HDI: %{x}<br>Depression: %{y}%<extra></extra>',
+    marker=dict(color='crimson', size=13, symbol='circle',
+                line=dict(color='darkred', width=1.5))
+))
+
+# --- Layer 3: Bottom 3 (green) ---
+fig.add_trace(go.Scatter(
+    x=foc_bot['Avg_HDI'],
+    y=foc_bot['Avg_Depression'],
+    mode='markers+text',
+    name='Bottom 3 (Lowest Depression)',
+    text=foc_bot['Entity'],
+    textposition='top right',
+    hovertemplate='<b>%{text}</b><br>HDI: %{x}<br>Depression: %{y}%<extra></extra>',
+    marker=dict(color='seagreen', size=13, symbol='circle',
+                line=dict(color='darkgreen', width=1.5))
+))
+
+# Trend line across all countries
+import numpy as np
+coeffs = np.polyfit(scatter_df['Avg_HDI'], scatter_df['Avg_Depression'], 1)
+trendline_x = np.linspace(scatter_df['Avg_HDI'].min(), scatter_df['Avg_HDI'].max(), 100)
+trendline_y = np.polyval(coeffs, trendline_x)
+
+fig.add_trace(go.Scatter(
+    x=trendline_x,
+    y=trendline_y,
+    mode='lines',
+    name='Trend',
+    line=dict(color='steelblue', width=2, dash='dash'),
+    hoverinfo='skip'
+))
+
+# --- Layout ---
+fig.update_layout(
+    legend=dict(
+        x=0.98,
+        y=0.98,
+        xanchor='right',
+        yanchor='bottom',
+        bgcolor='rgba(255,255,255,0.85)',
+        bordercolor='lightgrey',
+        borderwidth=1
+    )
+)
+
+fig.write_html('scatter_hdi_depression.html')
+fig.show()
+# Results: The trendline is nearly flat (slightly negative slope) 
+# which visually undersells the HDI-depression relationship. 
+# That's because the overall data is noisy — worth adding a note
+# in analysis that the relationship is stronger at the extremes 
+# (6 focus countries) than globally.
+# 1. HDI is NOT a Strong Global Predictor of Depression
+# 2. But the Extremes Tell a Different Story: the 6 highlighted 
+#   countries reveal something the trendline hides:
+#   - All 3 red dots (Morocco, Lesotho, Uganda) sit in the upper-left — low HDI AND high depression
+#   - Poland and Albania sit bottom-right — high HDI AND low depression
+#   - That separation is real and meaningful even if the global trend is flat
+
+# 3. Myanmar Breaks Everything: it sits bottom-left alongside the red dots in terms of HDI (~0.45) 
+#    but has depression as low as Poland (~2.2%). It's the most important single point on this chart — 
+#    it tells you HDI alone cannot explain the top 3's high depression rates. 
+
+# CONCLUSION: HDI separates the extremes but doesn't explain the middle
+
+
+
+### Line chart:
+focus   = ['Morocco', 'Lesotho', 'Uganda', 'Poland', 'Myanmar', 'Albania']
+df_line = df_enriched[df_enriched['Entity'].isin(focus)].copy()
+
+# Color map
+colors = {
+    'Morocco': 'crimson',
+    'Lesotho': 'tomato',
+    'Uganda':  'orangered',
+    'Poland':  'seagreen',
+    'Myanmar': 'mediumseagreen',
+    'Albania': 'steelblue'
+}
+fig = go.Figure()
+
+for country in focus:
+    df_c = df_line[df_line['Entity'] == country].sort_values('Year')
+    fig.add_trace(go.Scatter(
+        x=df_c['Year'],
+        y=df_c['Depression'],
+        mode='lines+markers',
+        name=country,
+        line=dict(color=colors[country], width=2.5),
+        marker=dict(size=5),
+        hovertemplate=f'<b>{country}</b><br>Year: %{{x}}<br>Depression: %{{y:.2f}}%<extra></extra>'
+    ))
+
+fig.update_layout(
+    title=dict(
+        text='Depression Rate Over Time (1990–2017)<br><sup>Top 3 Highest vs Bottom 3 Lowest Depression Countries</sup>',
+        x=0.5
+    ),
+    xaxis=dict(title='Year', dtick=5),
+    yaxis=dict(title='Depression Rate (%)'),
+    width=900, height=550,
+    legend=dict(x=1.01, y=1, xanchor='left'),
+    plot_bgcolor='white',
+    paper_bgcolor='white',
+    xaxis_gridcolor='#eeeeee',
+    yaxis_gridcolor='#eeeeee',
+    # Add a horizontal reference line at the global average
+    shapes=[dict(
+        type='line',
+        x0=1990, x1=2017,
+        y0=3.5,  y1=3.5,
+        line=dict(color='lightgrey', width=1.5, dash='dot')
+    )],
+    annotations=[dict(
+        x=2017, y=3.5,
+        text='Global avg ~3.5%',
+        showarrow=False,
+        xanchor='right',
+        font=dict(color='grey', size=11)
+    )]
+)
+
+fig.write_html('linechart_depression_trends.html')
+fig.show()
