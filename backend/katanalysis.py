@@ -18,6 +18,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import country_converter as coco
 from IPython.display import display
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
+import numpy as np
 
 
 ### Idea: disorders by country over time
@@ -137,6 +140,9 @@ display(
     .round(4)
     .reset_index()
 )
+# Conclusions: Anxiety (3.95%) and Depression (3.47%) are in the lead. 
+# Note: Everything else is <1%, keep separate or use log scale.
+
 
 # 2. Top 10 countries by average depression rate
 print("\n--- 2. Top 10 Countries by Depression ---")
@@ -149,6 +155,21 @@ display(
     .reset_index()
 )
 
+print("\n--- 2. Bottom 10 Countries by Depression ---")
+display(
+    df_disorders.groupby('Entity')['Depression']
+    .mean()
+    .sort_values(ascending=True)
+    .head(10)
+    .round(4)
+    .reset_index()
+)
+# Conclusions: 
+# #1-5: Greenland (Extreme seasonality, isolation, high suicide rates, and indigenous community trauma),
+#       Morocco, Lesotho, Uganda, Finland (tho Finland consistently tops "World Happiness" rankings)
+#   Lower-income countries with high rates suggest high prevalence, likely low treatment
+
+
 # 3. Global disorder trends over time
 print("\n--- 3. Global Trends Over Time ---")
 display(
@@ -158,24 +179,287 @@ display(
     .reset_index()
     .sort_values(['Disorder', 'Year'])
 )
+# Conclusions: 
+# No disorder exploded or collapsed globally over 27 years
+# Small changes (like Schizophrenia 0.2102 → 0.2110) are essentially flat
+# Dataset ends at 2017, so it misses COVID entirely — worth noting as a limitation
 
 # 4. Correlation between disorders
 print("\n--- 4. Disorder Correlation Matrix ---")
 display(df_disorders[disorder_cols].corr().round(2))
+# Conclusions: 
+# Strong cluster 1 — "Psychotic/Neurological":
+#   Eating ↔ Bipolar (0.70)
+#   Eating ↔ Schizophrenia (0.69)
+#   Bipolar ↔ Anxiety (0.65)
+
+# Strong cluster 2 — "Stress/Substance":
+#   Anxiety ↔ Drug Use (0.60)
+#   Anxiety ↔ Eating (0.68)
+
+# Loner: Depression (max correlation = 0.34 with Anxiety)
+# Loner: Alcohol Use (near-zero or negative with almost everything)
+
+# Key surprises:
+# Depression is nearly uncorrelated with most disorders — this is counterintuitive but suggests Depression has a very different geographic/cultural distribution than the others
+# Alcohol Use is negatively correlated with Anxiety (-0.16) and Drug Use (-0.16) — countries high in one tend to be lower in the other, suggesting cultural substitution (e.g. alcohol-heavy cultures vs drug-use-heavy ones)
+# Eating disorders cluster with Schizophrenia and Bipolar — likely a shared geographic pattern (higher prevalence in wealthier/Western countries)
 
 
+#===================================================
+# ##### VISUALIZATIONS
+# # 1. Heatmap (countries × years): Prevalence pattern for one disorder
+# corr_matrix = df_disorders[disorder_cols].corr().round(2)
+
+# # Create a mask for the upper triangle (avoids duplicate info)
+# mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+
+# fig, ax = plt.subplots(figsize=(9, 7))
+
+# sns.heatmap(
+#     corr_matrix,
+#     mask=mask,
+#     annot=True,          # Show the numbers
+#     fmt='.2f',           # 2 decimal places
+#     cmap='RdYlGn',       # Red (negative) → Yellow (neutral) → Green (positive)
+#     vmin=-1, vmax=1,     # Fix scale to full correlation range
+#     linewidths=0.5,
+#     square=True,
+#     ax=ax
+# )
+
+# ax.set_title('Correlation Between Mental Health Disorders\n(Global Prevalence, 1990–2017)',
+#              fontsize=14, pad=15)
+# ax.tick_params(axis='x', rotation=45)
+# ax.tick_params(axis='y', rotation=0)
+
+# plt.tight_layout()
+# plt.savefig('disorder_correlation_heatmap.png', dpi=150, bbox_inches='tight')
+# plt.show()
 
 
 
 #===================================================
-### Idea: correlation between disorders in country
+### Idea: merge in HDI_simplified, see if there's stuff
+
+# Load & inspect
+df_hdi = pd.read_csv('HDI_simplified.csv')
+
+print("Shape:", df_hdi.shape)
+print("\nColumns:", df_hdi.columns.tolist())
+print("\nDtypes:\n", df_hdi.dtypes)
+print("\nFirst few rows:")
+display(df_hdi.head())
+print("\nNulls:\n", df_hdi.isnull().sum())
+print("\nYear range:", df_hdi['Year'].min(), "→", df_hdi['Year'].max())  # adjust col name if needed
+
+# Clean & align
+# Rename to match disorders dataframe
+df_hdi = df_hdi.rename(columns={
+    'country': 'Entity',
+    'hdi':     'HDI_Value'
+})
+
+# Trim whitespace 
+df_hdi['Entity']      = df_hdi['Entity'].str.strip()
+df_disorders['Entity'] = df_disorders['Entity'].str.strip()
+
+# Check year overlap (MH is 1990-2017, HDI is 1990-2021 — should be full overlap)
+hdi_years = set(df_hdi['Year'].unique())
+mh_years  = set(df_disorders['Year'].unique())
+print("Overlapping years:", len(hdi_years & mh_years), "years")
+print("MH years NOT in HDI:", sorted(mh_years - hdi_years))  # should be empty
+# good
+
+# Check country name mismatches BEFORE merging
+hdi_countries = set(df_hdi['Entity'].unique())
+mh_countries  = set(df_disorders['Entity'].unique())
+
+only_in_hdi = hdi_countries - mh_countries
+only_in_mh  = mh_countries - hdi_countries
+
+print(f"\n{len(hdi_countries)} countries in HDI")
+print(f"{len(mh_countries)} countries in MH dataset")
+print(f"\nIn MH but NOT in HDI ({len(only_in_mh)}):", sorted(only_in_mh))
+
+# Find what HDI_simplified actually calls these countries
+problem_countries = [
+    'Bolivia', 'Brunei', 'Cape Verde', "Cote d'Ivoire", 'Czech Republic',
+    'Democratic Republic of Congo', 'Iran', 'Laos', 'Macedonia',
+    'Micronesia (country)', 'Moldova', 'Palestine', 'Russia', 'South Korea',
+    'Swaziland', 'Syria', 'Tanzania', 'Timor', 'Venezuela', 'Vietnam'
+]
+
+print("=== HDI name lookup ===")
+for country in problem_countries:
+    keyword = country.split()[0]  # search by first word
+    matches = df_hdi[df_hdi['Entity'].str.contains(keyword, case=False, na=False)]['Entity'].unique()
+    if len(matches) > 0:
+        print(f"  {country:35} → HDI has: {list(matches)}")
+    else:
+        print(f"  {country:35} → ❌ NOT FOUND")
+
+# Update names of countries
+name_fixes_v2 = {
+    # Previously confirmed
+    'Bolivia (Plurinational State of)':          'Bolivia',
+    'Brunei Darussalam':                         'Brunei',
+    'Czechia':                                   'Czech Republic',
+    'Congo (Democratic Republic of the)':        'Democratic Republic of Congo',
+    'Iran (Islamic Republic of)':                'Iran',
+    'North Macedonia':                           'Macedonia',
+    'Micronesia (Federated States of)':          'Micronesia (country)',
+    'Moldova (Republic of)':                     'Moldova',
+    'Palestine, State of':                       'Palestine',
+    'Russian Federation':                        'Russia',
+    'Syrian Arab Republic':                      'Syria',
+    'Tanzania (United Republic of)':             'Tanzania',
+    'Timor-Leste':                               'Timor',
+    'Venezuela (Bolivarian Republic of)':        'Venezuela',
+
+    # NOT FOUND fixes
+    'Cabo Verde':                                'Cape Verde',       # renamed
+    "Côte d'Ivoire":                             "Cote d'Ivoire",   # accent
+    "Lao People's Democratic Republic":          'Laos',            # was hiding in Congo search!
+    'Lao PDR':                                   'Laos',            # backup alias
+    'Eswatini':                                  'Swaziland',       # renamed 2018
+    'Viet Nam':                                  'Vietnam',         # spacing
+
+    # South Korea fix (search returned wrong results)
+    'Korea (Republic of)':                       'South Korea',
+    'Korea, Republic of':                        'South Korea',
+}
+
+# Apply fixes to HDI BEFORE merging
+df_hdi['Entity'] = df_hdi['Entity'].replace(name_fixes_v2)
+
+# Re-merge
+df_enriched = pd.merge(
+    df_disorders,
+    df_hdi[['Entity', 'Year', 'HDI_Value']],
+    on=['Entity', 'Year'],
+    how='left'
+)
+
+total   = len(df_enriched)
+matched = df_enriched['HDI_Value'].notna().sum()
+print(f"Merge quality: {matched:,}/{total:,} rows matched ({matched/total*100:.1f}%)")
+
+# Check who's still unmatched
+still_missing = (df_enriched[df_enriched['HDI_Value'].isna()]['Entity']
+                 .value_counts())
+print("\nStill unmatched:\n", still_missing)
 
 
-#===================================================
-### Idea: disorder trends thru global shock events
-# Shocks to annotate:
-    # 2008 Financial Crisis
-    # 2015 Refugee Crisis
-    # 2020 COVID-19
-    # Regional conflicts (Syria 2011, Ukraine 2022)
+## Result of cleaning: ~14% unmatched rows, but 5 are name issues, let's fix:
 
+for keyword in ['Cabo', 'Ivoire', 'Eswatini', 'Viet', 'Lao']:
+    matches = df_hdi[df_hdi['Entity'].str.contains(keyword, case=False, na=False)]['Entity'].unique()
+    print(f"'{keyword}' → {matches}")
+
+patch_fixes = {
+    'Cabo Verde':                        'Cape Verde',
+    'Eswatini (Kingdom of)':                          'Swaziland',
+    'Viet Nam':                          'Vietnam',
+    "Lao People's Democratic Republic":  'Laos',
+    'Lao PDR':                           'Laos',
+    "Côte d'Ivoire":                     "Cote d'Ivoire",
+}
+
+df_hdi['Entity'] = df_hdi['Entity'].replace(patch_fixes)
+
+# Re-merge
+df_enriched = pd.merge(
+    df_disorders,
+    df_hdi[['Entity', 'Year', 'HDI_Value']],
+    on=['Entity', 'Year'],
+    how='left'
+)
+
+total   = len(df_enriched)
+matched = df_enriched['HDI_Value'].notna().sum()
+print(f"New merge quality: {matched:,}/{total:,} ({matched/total*100:.1f}%)")
+
+
+# PROBLEM: Greenland was #1 depression country — but it has zero HDI coverage
+# Check HDI coverage for your actual top/bottom countries
+depression_avg = (df_enriched.groupby('Entity')['Depression']
+                  .mean()
+                  .sort_values(ascending=False)
+                  .reset_index())
+
+# Add HDI coverage info
+hdi_coverage = (df_enriched.groupby('Entity')['HDI_Value']
+                .apply(lambda x: x.notna().sum())
+                .reset_index()
+                .rename(columns={'HDI_Value': 'HDI_Years'}))
+
+depression_avg = pd.merge(depression_avg, hdi_coverage, on='Entity')
+
+print("=== TOP 10 Depression + HDI Coverage ===")
+display(depression_avg.head(10))
+
+print("\n=== BOTTOM 10 Depression + HDI Coverage ===")
+display(depression_avg.tail(10))
+
+# Filter: only countries with at least 20 years of HDI data
+well_covered = depression_avg[depression_avg['HDI_Years'] >= 20]
+
+top3    = well_covered.head(3)['Entity'].tolist()
+bottom3 = well_covered.tail(3)['Entity'].tolist()
+
+print("Top 3 (with HDI coverage):   ", top3)
+print("Bottom 3 (with HDI coverage):", bottom3)
+
+
+
+
+### Summary table:
+focus   = ['Morocco', 'Lesotho', 'Uganda', 'Poland', 'Myanmar', 'Albania']
+df_focus = df_enriched[df_enriched['Entity'].isin(focus)].copy()
+
+summary = (df_focus.groupby('Entity')
+           .agg(
+               Avg_Depression = ('Depression', 'mean'),
+               Avg_HDI        = ('HDI_Value',  'mean'),
+               Avg_Anxiety    = ('Anxiety',    'mean'),
+               Avg_Drug_Use   = ('Drug Use',   'mean'),
+               Avg_Alcohol    = ('Alcohol Use','mean'),
+           )
+           .round(3)
+           .sort_values('Avg_Depression', ascending=False)
+           .reset_index())
+
+summary['Group'] = summary['Entity'].apply(
+    lambda x: 'Top 3' if x in ['Morocco', 'Lesotho', 'Uganda'] else 'Bottom 3'
+)
+
+display(summary[['Group', 'Entity', 'Avg_Depression', 'Avg_HDI',
+                 'Avg_Anxiety', 'Avg_Drug_Use', 'Avg_Alcohol']])
+
+# Results: 
+# The HDI story is real but incomplete: Myanmar (HDI 0.450) which is almost identical 
+# to Uganda (0.429) and Lesotho (0.469), yet has depression at 2.25% vs their 5.2–5.4%. 
+# HDI alone clearly doesn't explain it.
+
+# Morocco is an Outlier Within the Top 3.
+# Morocco has nearly 5x higher drug use than Uganda and anxiety almost 1.5 points higher 
+# than the others. Its depression likely has a different driver (stress/substance co-occurrence)
+# versus Lesotho and Uganda which may be more poverty/trauma driven.
+
+# Alcohol is doing the opposite of what we'd expect.
+# The two highest alcohol countries are Poland (1.952) and Albania (1.747) — both in the low 
+# depression group. Meanwhile Morocco, the highest depression country, has the lowest alcohol (0.563).
+# This echoes the negative correlation (-0.16 overall) we saw in the correlation matrix earlier. 
+# Cultural substitution effect is real here — alcohol-heavy cultures tend to have lower reported 
+# drug use and depression.
+
+# Anxiety is surprisingly weak as a differentiator.
+# Except for Morocco, anxiety rates are clustered tightly between 3.26 and 3.47 across ALL six countries 
+# — both high and low depression groups. That's a narrow range. It means anxiety prevalence alone doesn't predict depression ranking here.
+
+# Myanmar breaks every pattern:
+# - Low HDI (like the top 3) → but low depression
+# - Low anxiety, low drug use, low alcohol
+# - Essentially low everything
+# might be seriously underreported
